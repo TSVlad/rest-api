@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Collection;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/users")
 public class PhoneBookRestController {
 
     private PhoneBookService phoneBookService;
@@ -18,27 +18,27 @@ public class PhoneBookRestController {
         this.phoneBookService = phoneBookService;
     }
 
-    @GetMapping("all-entries/{id}")
-    public Collection<PhoneBookEntry> getAllEntriesForUser(@PathVariable long id) {
-        return phoneBookService.getAllEntriesForUser(id);
+    @GetMapping("/{userId}/contacts")
+    public Collection<PhoneBookEntry> getAllEntriesForUser(@PathVariable long userId) {
+        return phoneBookService.getAllEntriesForUser(userId);
     }
 
-    @GetMapping("entry/{userId}/{id}")
+    @GetMapping("/{userId}/contacts/{id}")
     public PhoneBookEntry getPhoneBookEntry(@PathVariable long userId, @PathVariable long id) {
         return phoneBookService.getPhoneBookEntry(userId, id);
     }
 
-    @PostMapping("save-entry/{userId}")
+    @PostMapping("/{userId}/contacts")
     public void saveEntry(@PathVariable long userId, @RequestBody PhoneBookEntry entry) {
         phoneBookService.saveOrUpdateEntry(userId, entry);
     }
 
-    @DeleteMapping("delete-entry/{userId}/{id}")
+    @DeleteMapping("/{userId}/contacts/{id}")
     public void deletePhoneBookEntry(@PathVariable long userId, @PathVariable long id) {
         phoneBookService.deleteEntry(userId, id);
     }
 
-    @GetMapping("entry-by-number/{userId}/{number}")
+    @GetMapping("/{userId}/contacts/by-number/{number}")
     public PhoneBookEntry getEntryByNumber(@PathVariable long userId, @PathVariable String number) {
         return phoneBookService.getEntryByNumber(userId, number);
     }

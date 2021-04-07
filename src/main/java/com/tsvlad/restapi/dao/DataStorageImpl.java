@@ -1,13 +1,19 @@
 package com.tsvlad.restapi.dao;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsvlad.restapi.entity.PhoneBook;
 import com.tsvlad.restapi.entity.PhoneBookEntry;
 import com.tsvlad.restapi.entity.User;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.ResourceUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @Repository
 public class DataStorageImpl implements DataStorage {
@@ -19,25 +25,14 @@ public class DataStorageImpl implements DataStorage {
     }
 
     private void init() {
-        this.currentId = 4;
-        this.users = new HashMap<>();
-        User user1 = new User(1, "Vladislav");
-        user1.saveOrUpdatePhoneBookEntry(new PhoneBookEntry("89151111111", "Ivan"));
-        user1.saveOrUpdatePhoneBookEntry(new PhoneBookEntry("89152222222", "Vladislav"));
-        user1.saveOrUpdatePhoneBookEntry(new PhoneBookEntry("89153333333", "Elena"));
-        this.users.put(user1.getId(), user1);
-
-        User user2 = new User(2, "Ivan");
-        user2.saveOrUpdatePhoneBookEntry(new PhoneBookEntry("89154444444", "Denis"));
-        user2.saveOrUpdatePhoneBookEntry(new PhoneBookEntry("89155555555", "Anna"));
-        user2.saveOrUpdatePhoneBookEntry(new PhoneBookEntry("89156666666", "Alina"));
-        this.users.put(user2.getId(), user2);
-
-        User user3 = new User(3, "Elena");
-        user3.saveOrUpdatePhoneBookEntry(new PhoneBookEntry("89157777777", "Polina"));
-        user3.saveOrUpdatePhoneBookEntry(new PhoneBookEntry("89158888888", "Veronika"));
-        user3.saveOrUpdatePhoneBookEntry(new PhoneBookEntry("89159999999", "Nikita"));
-        this.users.put(user3.getId(), user3);
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            File file = ResourceUtils.getFile("classpath:init_data.json");
+            this.users = objectMapper.readValue(file, new TypeReference<HashMap<Long, User>>() {});
+            this.currentId = this.users.size() + 1;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -54,47 +49,79 @@ public class DataStorageImpl implements DataStorage {
         if (user.getPhoneBook() == null) {
             user.setPhoneBook(new PhoneBook());
         }
+        if (user.getName().isEmpty()) {
+            throw new IllegalArgumentException("Name is empty!");
+        }
         users.put(user.getId(), user);
     }
 
     @Override
     public User getUser(long id) {
-        return users.get(id);
+        User user = users.get(id);
+        if (user == null) {
+            throw new NoSuchElementException("Not found user with id=" + id);
+        }
+        return user;
     }
 
     @Override
     public void deleteUser(long id) {
+        if (!users.containsKey(id)) {
+            throw new NoSuchElementException("Not found user with id=" + id);
+        }
         users.remove(id);
     }
 
     @Override
     public Collection<PhoneBookEntry> getAllEntriesForUser(long id) {
         User user = users.get(id);
-        return user == null ? null : user.getAllEntries();
+        if (user == null) {
+            throw new NoSuchElementException("Not found user with id=" + id);
+        }
+        return user.getAllEntries();
     }
 
     @Override
     public PhoneBookEntry getPhoneBookEntry(long userId, long id) {
         User user = users.get(userId);
         if (user == null) {
-            return null;
+            throw new NoSuchElementException("Not found user with id=" + userId);
         }
-        return user.getPhoneBookEntry(id);
+        PhoneBookEntry entry = user.getPhoneBookEntry(id);
+        if (entry == null) {
+            throw new NoSuchElementException("Not found entry with id=" + id + " for user with id=" + userId);
+        }
+        return entry;
     }
 
     @Override
     public void saveOrUpdateEntry(long userId, PhoneBookEntry entry) {
         User user = users.get(userId);
-        if (user != null) {
-            user.saveOrUpdatePhoneBookEntry(entry);
+        if (user == null) {
+            throw new NoSuchElementException("Not found user with id=" + userId);
         }
+        if (entry.getName() == null || entry.getName().isEmpty()) {
+            throw new IllegalArgumentException("Contact name is empty");
+        }
+        if (entry.getPhoneNumber() == null || entry.getPhoneNumber().isEmpty()) {
+            throw new IllegalArgumentException("Contact number is empty");
+        }
+//        if (Pattern.matches("^[+]?[0-9]?\\(?([0-9]{3})\\)?([ .-]?)([0-9]{3})\\2([0-9]{4})$", entry.getPhoneNumber())) {
+//            throw new IllegalArgumentException("Incorrect number format: " + entry.getPhoneNumber());
+//        }
+        user.saveOrUpdatePhoneBookEntry(entry);
     }
 
     @Override
     public void deleteEntry(long userId, long id) {
         User user = users.get(userId);
-        if (user != null) {
-            user.deletePhoneBookEntry(id);
+        if (user == null) {
+            throw new NoSuchElementException("Not found user with id=" + userId);
         }
+        PhoneBookEntry entry = user.getPhoneBookEntry(id);
+        if (entry == null) {
+            throw new NoSuchElementException();
+        }
+        user.deletePhoneBookEntry(id);
     }
 }

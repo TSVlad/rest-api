@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.List;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/users")
 public class UsersRestController {
     private UserService userService;
 
@@ -18,27 +18,27 @@ public class UsersRestController {
         this.userService = userService;
     }
 
-    @GetMapping("/all-users")
+    @GetMapping("")
     public Collection<User> getAllUsers() {
         return userService.getAllUsers();
     }
 
-    @PostMapping("/save-user")
+    @PostMapping("")
     public void saveUser(@RequestBody User user) {
         userService.saveOrUpdateUser(user);
     }
 
-    @GetMapping("user/{id}")
+    @GetMapping("/{id}")
     public User getUser(@PathVariable long id) {
         return userService.getUser(id);
     }
 
-    @DeleteMapping("delete-user/{id}")
+    @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable long id) {
         userService.deleteUser(id);
     }
 
-    @GetMapping("user-by-name/{name}")
+    @GetMapping("/by-name/{name}")
     public List<User> getUsersByName(@PathVariable String name) {
         return userService.getUsersByName(name);
     }

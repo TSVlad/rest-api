@@ -2,7 +2,6 @@ package com.tsvlad.restapi.dao;
 
 import com.tsvlad.restapi.entity.PhoneBookEntry;
 import com.tsvlad.restapi.entity.User;
-
 import java.util.Collection;
 
 public interface DataStorage {

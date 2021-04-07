@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -24,12 +25,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void saveOrUpdateUser(User user) {
+    public void saveOrUpdateUser(User user) throws IllegalArgumentException {
         dataStorage.saveOrUpdateUser(user);
     }
 
     @Override
-    public User getUser(long id) {
+    public User getUser(long id) throws NoSuchElementException {
         return dataStorage.getUser(id);
     }
 
@@ -44,7 +45,7 @@ public class UserServiceImpl implements UserService {
         Collection<User> allUsers = dataStorage.getAllUsers();
         List<User> users = new ArrayList<>();
         for(User user : allUsers) {
-            if (user.getName().toLowerCase().startsWith(name)) {
+            if (user.getName().toLowerCase().contains(name)) {
                 users.add(user);
             }
         }
